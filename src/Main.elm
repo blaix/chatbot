@@ -1,10 +1,12 @@
 module Main exposing (main)
 
 import Browser
-import Html as H exposing (Html)
+import Element as E
+import Element.Input as Input
+import Html exposing (Html)
 
 
-main : Program () Model msg
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
@@ -14,25 +16,71 @@ main =
         }
 
 
+
+-- MODEL
+
+
 type alias Model =
-    Int
+    { messages : List String
+    , newMessage : String
+    , rudeness : Rudeness
+    }
 
 
-init : () -> ( Model, Cmd msg )
+type Rudeness
+    = Rude
+    | VeryRude
+
+
+init : () -> ( Model, Cmd Msg )
 init _ =
-    ( 1, Cmd.none )
+    ( { messages = []
+      , newMessage = ""
+      , rudeness = Rude
+      }
+    , Cmd.none
+    )
 
 
-update : msg -> Model -> ( Model, Cmd msg )
-update _ model =
-    ( model, Cmd.none )
+
+-- UPDATE
 
 
-view : Model -> Html msg
-view _ =
-    H.text "You are cool."
+type Msg
+    = NewMessageChanged String
 
 
-subscriptions : Model -> Sub msg
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        NewMessageChanged message ->
+            ( { model | newMessage = message }
+            , Cmd.none
+            )
+
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    E.layout [ E.padding 20 ] <|
+        E.column [ E.spacing 16 ]
+            [ E.text "Chat with chatbot."
+            , Input.text []
+                { onChange = NewMessageChanged
+                , text = model.newMessage
+                , placeholder = Just <| Input.placeholder [] <| E.text "Your message"
+                , label = Input.labelHidden "Your message"
+                }
+            ]
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
