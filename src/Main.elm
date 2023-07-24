@@ -4,6 +4,8 @@ import Browser
 import Element as E
 import Element.Input as Input
 import Html exposing (Html)
+import Html.Events
+import Json.Decode as Decode
 
 
 main : Program () Model Msg
@@ -48,6 +50,7 @@ init _ =
 
 type Msg
     = NewMessageChanged String
+    | NewMessageSubmitted
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -55,6 +58,14 @@ update msg model =
     case msg of
         NewMessageChanged message ->
             ( { model | newMessage = message }
+            , Cmd.none
+            )
+
+        NewMessageSubmitted ->
+            ( { model
+                | messages = model.messages ++ [ model.newMessage ]
+                , newMessage = ""
+              }
             , Cmd.none
             )
 
@@ -68,13 +79,33 @@ view model =
     E.layout [ E.padding 20 ] <|
         E.column [ E.spacing 16 ]
             [ E.text "Chat with chatbot."
-            , Input.text []
+            , Input.text
+                [ onEnter NewMessageSubmitted
+                ]
                 { onChange = NewMessageChanged
                 , text = model.newMessage
                 , placeholder = Just <| Input.placeholder [] <| E.text "Your message"
                 , label = Input.labelHidden "Your message"
                 }
             ]
+
+
+{-| -}
+onEnter : msg -> E.Attribute msg
+onEnter msg =
+    E.htmlAttribute
+        (Html.Events.on "keyup"
+            (Decode.field "key" Decode.string
+                |> Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Decode.succeed msg
+
+                        else
+                            Decode.fail "Not the enter key"
+                    )
+            )
+        )
 
 
 
