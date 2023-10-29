@@ -1,2 +1,2 @@
 dev:
-	git ls-files | entr -s "clear && npx elm make src/Main.elm"
+	git ls-files | entr -s "clear && elm make src/Main.elm"
